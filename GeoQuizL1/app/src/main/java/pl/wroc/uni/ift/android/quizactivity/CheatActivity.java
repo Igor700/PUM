@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class CheatActivity extends AppCompatActivity {
 
@@ -22,6 +23,11 @@ public class CheatActivity extends AppCompatActivity {
 
 
     boolean mAnswer;
+
+    private void message() {
+        String message = "Oszust";
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,10 +43,15 @@ public class CheatActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (mAnswer) {
                     mTextViewAnswer.setText("Prawda");
+                    QuizActivity.mTokens--;
+
                 } else {
                     mTextViewAnswer.setText("Fałsz");
+                    QuizActivity.mTokens--;
+
                 }
                 setAnswerShown(true);
+                message();
             }
         });
 
@@ -67,8 +78,6 @@ public class CheatActivity extends AppCompatActivity {
         data.putExtra("wasShown", isAnswerShown);
         setResult(RESULT_OK, data);
     }
-
-
 
 
 

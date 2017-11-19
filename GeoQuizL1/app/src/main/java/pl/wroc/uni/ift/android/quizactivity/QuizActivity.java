@@ -2,6 +2,7 @@ package pl.wroc.uni.ift.android.quizactivity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,24 +18,27 @@ public class QuizActivity extends AppCompatActivity {
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
 
-
+    public static int mTokens = 2;
     private static final String KEY_QUESTIONS = "questions";
 
     private static final int CHEAT_REQEST_CODE = 0;
-
     private Button mTrueButton;
     private Button mFalseButton;
     private ImageButton mNextButton;
     private ImageButton mPrevButton;
     private TextView mQuestionTextView;
-    private Button mCheatButton;
+    TextView mAPILevel;
+
     private Question[] mQuestionsBank = new Question[]{
             new Question(R.string.question_stolica_polski, true),
             new Question(R.string.question_stolica_dolnego_slaska, false),
             new Question(R.string.question_sniezka, true),
             new Question(R.string.question_wisla, true)
     };
+    ;
 
+    private Button mCheatButton;
+    ;
     private int mCurrentIndex = 0;
     private int mNumber = 0;
     private int mPoints = 0;
@@ -51,41 +55,28 @@ public class QuizActivity extends AppCompatActivity {
         setContentView(R.layout.activity_quiz);
 
         if (savedInstanceState != null) {
-            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX);
-            Log.i(TAG, String.format("onCreate(): Restoring saved index: %d", mCurrentIndex));
 
-            // here in addition we are restoring our Question array;
-            // getParcelableArray returns object of type Parcelable[]
-            // since our Question is implementing this interface (Parcelable)
-            // we are allowed to cast the Parcelable[] to desired type which
-            // is the Question[] here.
-            mQuestionsBank = (Question []) savedInstanceState.getParcelableArray(KEY_QUESTIONS);
-            // sanity check
-            if (mQuestionsBank == null)
-            {
-                Log.e(TAG, "Question bank array was not correctly returned from Bundle");
-
-            } else {
-                Log.i(TAG, "Question bank array was correctly returned from Bundle");
-            }
-
+            mCurrentIndex = savedInstanceState.getInt("index");
+            mPoints = savedInstanceState.getInt("points");
+            mNumber = savedInstanceState.getInt("number");
+            AnsQuestion = savedInstanceState.getBooleanArray("ans");
+            mTokens = savedInstanceState.getInt("token");
         }
+            mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+
 
         mCheatButton = (Button) findViewById(R.id.button_cheat);
-        mCheatButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                boolean currentAnswer = mQuestionsBank[mCurrentIndex].isAnswerTrue();
-                Intent intent = CheatActivity.newIntent(QuizActivity.this, currentAnswer);
-//
-//                Intent intent = new Intent(QuizActivity.this, CheatActivity.class);
-//                boolean currentAnswer = mQuestionsBank[mCurrentIndex].isAnswerTrue();
-//                intent.putExtra("answer", currentAnswer);
-
-                startActivityForResult(intent, CHEAT_REQEST_CODE);
-            }
-        });
+        mCheatButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        updateQuestion();
+                        boolean currentAnswer = mQuestionsBank[mCurrentIndex].isAnswerTrue();
+                        Intent intent = CheatActivity.newIntent(QuizActivity.this, currentAnswer);
+                        startActivityForResult(intent, mTokens);
+                    }
+                }
+        );
 
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -144,6 +135,8 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestion();
             }
         });
+        mAPILevel = (TextView) findViewById(R.id.APILEVEL);
+        mAPILevel.setText(" Android Version : " + Build.VERSION.RELEASE + " and API Level : " + Build.VERSION.SDK);
 
         updateQuestion();
     }
@@ -160,26 +153,20 @@ public class QuizActivity extends AppCompatActivity {
             {
                 boolean answerWasShown = CheatActivity.wasAnswerShown(data);
                 if (answerWasShown) {
-
-                    Toast.makeText(this,
-                            R.string.message_for_cheaters,
-                            Toast.LENGTH_LONG)
-                            .show();
+                    Toast.makeText(this, R.string.message_for_cheaters, Toast.LENGTH_LONG).show();
                 }
             }
         }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        Log.i(TAG, String.format("onSaveInstanceState: current index %d ", mCurrentIndex) );
-
-
-        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
-
-
-        savedInstanceState.putParcelableArray(KEY_QUESTIONS, mQuestionsBank);
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt("index", mCurrentIndex);
+        outState.putInt("points", mPoints);
+        outState.putBooleanArray("ans", AnsQuestion);
+        outState.putInt("number", mNumber);
+        outState.putInt("token", mTokens);
+        super.onSaveInstanceState(outState);
     }
 
     private void ifTheEnd() {
@@ -197,7 +184,9 @@ public class QuizActivity extends AppCompatActivity {
     private void updateQuestion() {
         int question = mQuestionsBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
-
+        if (mTokens <= 0) {
+            mCheatButton.setVisibility(View.INVISIBLE);
+        }
         if (!AnsQuestion[mCurrentIndex]) { setAnswerButtonsEnabled(false); }
         setAnswerButtonsEnabled(!AnsQuestion[mCurrentIndex]);
 

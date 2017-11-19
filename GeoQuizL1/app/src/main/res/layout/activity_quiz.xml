@@ -113,5 +113,11 @@ This means, in which direction it's contents should align.
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button_cheat" />
+    <TextView
+        android:id="@+id/APILEVEL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:text="" />
 
 </LinearLayout>
