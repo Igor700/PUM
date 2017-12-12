@@ -19,5 +19,6 @@
 
     <string name="correct_toast">Odpowiedź poprawna!</string>
     <string name="incorrect_toast">Odpowiedź błędna!</string>
+    <string name="all_questions">Lista pytań</string>
 
 </resources>

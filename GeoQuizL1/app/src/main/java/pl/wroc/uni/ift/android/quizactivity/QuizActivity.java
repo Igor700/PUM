@@ -24,17 +24,19 @@ public class QuizActivity extends AppCompatActivity {
     private static final int CHEAT_REQEST_CODE = 0;
     private Button mTrueButton;
     private Button mFalseButton;
+    private Button mRecyclerButton;
     private ImageButton mNextButton;
     private ImageButton mPrevButton;
     private TextView mQuestionTextView;
+    private QuestionBank mQuestionsBank = QuestionBank.getInstance();
     TextView mAPILevel;
-
+/*
     private Question[] mQuestionsBank = new Question[]{
             new Question(R.string.question_stolica_polski, true),
             new Question(R.string.question_stolica_dolnego_slaska, false),
             new Question(R.string.question_sniezka, true),
             new Question(R.string.question_wisla, true)
-    };
+    };*/
     ;
 
     private Button mCheatButton;
@@ -42,7 +44,7 @@ public class QuizActivity extends AppCompatActivity {
     private int mCurrentIndex = 0;
     private int mNumber = 0;
     private int mPoints = 0;
-    private boolean[] AnsQuestion = new boolean[mQuestionsBank.length];
+    private boolean[] AnsQuestion = new boolean[mQuestionsBank.size()];
     //    Bundles are generally used for passing data between various Android activities.
     //    It depends on you what type of values you want to pass, but bundles can hold all
     //    types of values and pass them to the new activity.
@@ -71,7 +73,7 @@ public class QuizActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         updateQuestion();
-                        boolean currentAnswer = mQuestionsBank[mCurrentIndex].isAnswerTrue();
+                        boolean currentAnswer = mQuestionsBank.getQuestion(mCurrentIndex).isAnswerTrue();
                         Intent intent = CheatActivity.newIntent(QuizActivity.this, currentAnswer);
                         startActivityForResult(intent, mTokens);
                     }
@@ -83,7 +85,7 @@ public class QuizActivity extends AppCompatActivity {
         mQuestionTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mCurrentIndex = (mCurrentIndex + 1) % mQuestionsBank.length;
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionsBank.size();
                 updateQuestion();
             }
         });
@@ -115,7 +117,7 @@ public class QuizActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mCurrentIndex = (mCurrentIndex + 1) % mQuestionsBank.length;
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionsBank.size();
                 updateQuestion();
             }
         });
@@ -128,13 +130,23 @@ public class QuizActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(mCurrentIndex == 0)
                 {
-                    mCurrentIndex = mQuestionsBank.length - 1;
+                    mCurrentIndex = mQuestionsBank.size() - 1;
                 }else {
-                    mCurrentIndex = (mCurrentIndex - 1) % mQuestionsBank.length;
+                    mCurrentIndex = (mCurrentIndex - 1) % mQuestionsBank.size();
                 };
                 updateQuestion();
             }
         });
+
+        mRecyclerButton = (Button) findViewById(R.id.button_list);
+        mRecyclerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(QuizActivity.this, RecyclerActivity.class);
+                startActivity(intent);
+            }
+        });
+
         mAPILevel = (TextView) findViewById(R.id.APILEVEL);
         mAPILevel.setText(" Android Version : " + Build.VERSION.RELEASE + " and API Level : " + Build.VERSION.SDK);
 
@@ -170,7 +182,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void ifTheEnd() {
-        if (mNumber == mQuestionsBank.length) {
+        if (mNumber == mQuestionsBank.size()) {
             String gameOver_string = getString(R.string.the_end, mPoints);
             Toast.makeText(this, gameOver_string, Toast.LENGTH_LONG).show();
 
@@ -182,7 +194,7 @@ public class QuizActivity extends AppCompatActivity {
         mFalseButton.setEnabled(enabled);
     }
     private void updateQuestion() {
-        int question = mQuestionsBank[mCurrentIndex].getTextResId();
+        int question = mQuestionsBank.getQuestion(mCurrentIndex).getTextResId();
         mQuestionTextView.setText(question);
         if (mTokens <= 0) {
             mCheatButton.setVisibility(View.INVISIBLE);
@@ -193,7 +205,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void checkAnswer(boolean userPressedTrue) {
-        boolean answerIsTrue = mQuestionsBank[mCurrentIndex].isAnswerTrue();
+        boolean answerIsTrue = mQuestionsBank.getQuestion(mCurrentIndex).isAnswerTrue();
 
         int toastMessageId = 0;
         mNumber += 1;
